@@ -24,15 +24,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/pemeriksaan', [AdminController::class, 'pemeriksaan'])->name('pemeriksaan');
     Route::post('/pemeriksaan', [AdminController::class, 'pemeriksaanStore'])->name('pemeriksaan.store');
 
-    // Produk / Logistik
-    Route::get('/manajemen-produk', [AdminController::class, 'manajemenProduk'])->name('manajemen-produk');
-    Route::post('/produk', [AdminController::class, 'produkStore'])->name('produk.store');
-
-    // Artikel / Edukasi
+    // Artikel / Edukasi Kesehatan Masyarakat
     Route::get('/manajemen-artikel', [AdminController::class, 'manajemenArtikel'])->name('manajemen-artikel');
     Route::post('/artikel', [AdminController::class, 'artikelStore'])->name('artikel.store');
 
-    // Laporan
-    Route::get('/laporan-keuangan', [AdminController::class, 'laporanKeuangan'])->name('laporan-keuangan');
+    // Laporan Kesehatan & Stunting
     Route::get('/laporan-kesehatan', [AdminController::class, 'laporanKesehatan'])->name('laporan-kesehatan');
+
+    // Pengaturan Akun, Profil, Keamanan (Password, 2FA/TFA), & Posko
+    Route::get('/pengaturan-akun', [AdminController::class, 'pengaturanAkun'])->name('pengaturan-akun');
+    Route::post('/pengaturan-akun/profil', [AdminController::class, 'updateProfilAkun'])->name('pengaturan-akun.profil');
+    Route::post('/pengaturan-akun/password', [AdminController::class, 'updatePasswordAkun'])->name('pengaturan-akun.password');
+    Route::post('/pengaturan-akun/tfa', [AdminController::class, 'toggleTfa'])->name('pengaturan-akun.tfa');
+    Route::post('/pengaturan-akun/posko', [AdminController::class, 'updatePosko'])->name('pengaturan-akun.posko');
+    Route::post('/pengaturan-akun/logout-sesi', [AdminController::class, 'logoutOtherSessions'])->name('pengaturan-akun.logout-sesi');
 });

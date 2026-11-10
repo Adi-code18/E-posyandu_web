@@ -14,13 +14,13 @@
 
 <p align="center">
   <b>Aplikasi Web Manajemen Posyandu Modern Terintegrasi REST API untuk Klien Mobile Android</b><br/>
-  Mencakup Pemantauan Antropometri Siklus Hidup (Balita, Bumil, Remaja, Lansia), Logistik PMT & Obat, Laporan Arus Kas, dan Edukasi Kesehatan Masyarakat.
+  Fokus Utama pada Pengelolaan Data Warga & Kesehatan Siklus Hidup: Balita, Ibu Hamil, Remaja, Lansia, Rekam Medis KMS Digital, Edukasi Masyarakat, dan Pengaturan Keamanan Akun 2FA.
 </p>
 
 [🚀 Panduan Instalasi](#6-panduan-instalasi--menjalankan-proyek) •
 [🔑 Akun Pengujian](#5-daftar-akun-default--kredensial-pengujian) •
 [🗄️ Skema Database](#4-skema-basis-data--erd-13-tabel-lengkap) •
-[🔌 Spesifikasi 22 REST API](#10-dokumentasi-lengkap-22-endpoint-rest-api) •
+[🔌 Spesifikasi REST API](#10-dokumentasi-lengkap-22-endpoint-rest-api) •
 [📱 Integrasi Android](#11-integrasi-mobile-client-kotlin-jetpack-compose--retrofit) •
 [🎨 Desain Error Code](#9-katalog-desain-status--error-code-2xx-4xx-5xx)
 
@@ -74,17 +74,18 @@ flowchart TD
         L["👴 Lansia<br/>(Posbindu PTM)"]
     end
 
-    subgraph DUKUNGAN[" 📦 Manajemen Operasional & Penunjang "]
-        LOG["📦 Logistik PMT & Suplemen"]
-        KAS["💰 Arus Kas & Anggaran ADD/BOK"]
-        EDU["📰 Artikel Edukasi Kesehatan"]
-        JAD["📅 Penjadwalan Posyandu"]
+    subgraph PELAYANAN[" 📋 Tata Kelola & Layanan Posyandu "]
+        REG["📝 Pendaftaran & Validasi NIK 16-Digit"]
+        REC["📊 Rekam Antropometri & KMS Digital"]
+        LAP["📈 Laporan Kesehatan & Stunting"]
+        EDU["📰 Edukasi & Artikel Kesehatan"]
+        SEC["🔐 Keamanan Akun Kader & 2FA"]
     end
 
-    B --- LOG
-    H --- LOG
-    R --- DUKUNGAN
-    L --- DUKUNGAN
+    B --- REC
+    H --- REC
+    R --- PELAYANAN
+    L --- PELAYANAN
 ```
 
 | Siklus Sasaran | Indikator Pemantauan Utama | Intervensi & Layanan |
@@ -123,7 +124,7 @@ e-Posyandu/
 │   ├── Http/
 │   │   ├── Controllers/
 │   │   │   ├── Controller.php               # Base Controller Laravel
-│   │   │   ├── AdminController.php          # Controller Web: Dashboard, Warga, Logistik, Kas
+│   │   │   ├── AdminController.php          # Controller Web: Dashboard, Pendaftaran, Anggota, Rekam Fisik, Laporan, Artikel, Profil, Pengaturan Akun (2FA)
 │   │   │   ├── StatusController.php         # Controller Web: Simulator kode status & error page
 │   │   │   └── Api/                         # KONTROLLER REST API (MOBILE CLIENT):
 │   │   │       ├── BaseApiController.php    # JSON standard formatter helper
@@ -181,9 +182,6 @@ e-Posyandu/
 ```mermaid
 erDiagram
     USERS ||--o{ WARGA : "mendaftarkan"
-    USERS ||--o{ BARANG_MANAJEMEN : "mengetahui"
-    USERS ||--o{ LAPORAN_PENJUALAN : "menyetujui"
-    USERS ||--o{ TABEL_KAS_MASUK : "mengelola"
     USERS ||--o{ PEMERIKSAAN_BALITA : "memeriksa"
     USERS ||--o{ PEMERIKSAAN_BUMIL : "memeriksa"
     USERS ||--o{ PEMERIKSAAN_REMAJA : "memeriksa"
@@ -193,11 +191,13 @@ erDiagram
 
     KADER ||--o{ WARGA : "mendampingi"
     KADER ||--o{ JADWAL_POSYANDU : "bertugas"
-    KADER ||--o{ BARANG_MANAJEMEN : "mencatat_stok"
     KADER ||--o{ INFORMASI_UMUM : "menulis_artikel"
 
     WARGA ||--o{ JADWAL_POSYANDU : "peserta"
-    BARANG_MANAJEMEN ||--o{ LAPORAN_PENJUALAN : "didistribusikan"
+    WARGA ||--o{ PEMERIKSAAN_BALITA : "memiliki"
+    WARGA ||--o{ PEMERIKSAAN_BUMIL : "memiliki"
+    WARGA ||--o{ PEMERIKSAAN_REMAJA : "memiliki"
+    WARGA ||--o{ PEMERIKSAAN_LANSIA : "memiliki"
 ```
 
 ### B. Kamus Data 13 Tabel
@@ -375,19 +375,19 @@ flowchart LR
 
 ## 8. Fitur & Modul Utama Aplikasi Web
 
-| No | Modul Web | URL Endpoint | Otoritas | Fitur & Fungsionalitas Utama |
-| :-: | :--- | :--- | :--- | :--- |
-| 1 | **Autentikasi Petugas** | `/` atau `/login` | Publik | Login multi-role dengan proteksi sesi & tombol intip password |
-| 2 | **Dashboard Statistik** | `/admin/dashboard` | Admin / Petugas | Ringkasan kartu real-time: jumlah balita, bumil, remaja, lansia & tabel pendaftaran terbaru |
-| 3 | **Pendaftaran Warga** | `/admin/pendaftaran` | Admin / Kader | Input registrasi warga baru dengan validasi 16 digit NIK & proteksi duplikasi |
-| 4 | **Daftar & Filter Warga** | `/admin/daftar-anggota` | Admin / Petugas | Pencarian instan (nama/NIK), filter kategori (*Balita, Bumil, Remaja, Lansia*), dan paginasi |
-| 5 | **Profil & Riwayat Warga** | `/admin/profil/{nik}` | Admin / Petugas | Detail kependudukan dinamis, kartu identitas, dan riwayat rekam medis warga |
-| 6 | **Pemeriksaan Fisik** | `/admin/pemeriksaan` | Bidan / Kader | Pencatatan antropometri (BB, TB, LK, LA, LP, tensi) terhubung ke NIK subjek |
-| 7 | **Manajemen Logistik PMT** | `/admin/manajemen-produk`| Admin / Kader | Kontrol stok obat/vitamin, modal tambah barang, indikator stok habis (0) |
-| 8 | **Laporan Keuangan Kas** | `/admin/laporan-keuangan`| Ketua / Admin | Rekap dana masuk (ADD/BOK), total pengeluaran logistik, dan kalkulasi saldo kas |
-| 9 | **Laporan Kesehatan Posyandu**| `/admin/laporan-kesehatan`| Bidan / Ketua | Rekapitulasi capaian pelayanan bulanan & riwayat cetak rekap medis |
-| 10 | **Manajemen Edukasi Artikel** | `/admin/manajemen-artikel`| Admin / Kader | Publikasi materi penyuluhan stunting, pola gizi balita, dan jadwal posyandu |
-| 11 | **Simulator Kode Status** | `/status` | Publik / Dev | Showcase interaktif pengujian seluruh kode respons HTTP (2xx, 4xx, 5xx) |
+Menu navigasi bilah sisi (*sidebar*) telah disederhanakan dan berfokus penuh pada **Pengelolaan Data Warga & Kesehatan Siklus Hidup**:
+
+| Kategori Sidebar | Modul Web | URL Endpoint | Otoritas | Fitur & Fungsionalitas Utama |
+| :--- | :--- | :--- | :--- | :--- |
+| **Menu Utama** | **Dashboard Statistik** | `/admin/dashboard` | Admin / Kader | Ringkasan kartu real-time (balita, bumil, lansia, remaja), grafik kehadiran bulanan, tabel interaktif rincian kehadiran per kelompok usia, dan pendaftar terbaru |
+| **Layanan Kesehatan** | **Pendaftaran Warga** | `/admin/pendaftaran` | Admin / Kader | Input registrasi warga baru dengan validasi 16 digit NIK & proteksi duplikasi data |
+| **Layanan Kesehatan** | **Pemilihan Warga (Daftar Anggota)** | `/admin/daftar-anggota` | Admin / Petugas | Pemilihan warga interaktif, filter kategori (*Semua, Balita, Ibu Hamil, Dewasa & Remaja, Lansia*), pencarian instan nama/NIK, dan tautan langsung pencatatan |
+| **Layanan Kesehatan** | **Pencatatan Fisik** | `/admin/pemeriksaan` | Bidan / Kader | Pencatatan antropometri (BB, TB, LiLA, LP, tensi darah) terhubung langsung ke NIK sasaran |
+| **Layanan Kesehatan** | **Laporan Kesehatan** | `/admin/laporan-kesehatan`| Bidan / Ketua | Rekapitulasi capaian pelayanan bulanan, pemantauan risiko stunting, dan riwayat cetak rekap medis (PDF) |
+| **Layanan Kesehatan** | **Artikel Edukasi** | `/admin/manajemen-artikel`| Admin / Kader | Publikasi materi penyuluhan stunting, gizi seimbang, MPASI, imunisasi, dan jadwal posyandu |
+| **Layanan Kesehatan** | **Profil Warga** | `/admin/profil/{nik}` | Admin / Petugas | Rekam KMS digital, kartu identitas warga, grafik tumbuh kembang, dan riwayat pemeriksaan |
+| **Keamanan & Posko** | **Pengaturan Akun & Posko** | `/admin/pengaturan-akun` | Kader / Petugas | Manajemen profil, ubah kata sandi dengan indikator kekuatan sandi, autentikasi dua faktor (2FA/TFA OTP & kode pemulihan), dan data posko |
+| **Sistem** | **Simulator Kode Status** | `/status` | Publik / Dev | Showcase interaktif pengujian seluruh kode respons HTTP (2xx, 4xx, 5xx) |
 
 [⬆️ Kembali ke Daftar Isi](#daftar-isi)
 

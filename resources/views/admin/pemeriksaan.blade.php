@@ -1,135 +1,154 @@
+{{--
+    =============================================================================
+    Halaman: Pencatatan Fisik & Antropometri Posyandu
+    =============================================================================
+    Fitur:
+    - Identifikasi subjek warga sasaran aktif yang sedang diperiksa
+    - Formulir parameter fisik (TB, BB, Lingkar Kepala, LILA, Lingkar Perut, Tensi)
+    - Kartu panduan standar antropometri Kemenkes RI
+    - Tombol aksi simpan rekam medis dengan umpan balik visual
+    =============================================================================
+--}}
 @extends('layouts.admin')
 
-@section('title', 'Pencatatan Fisik')
+@section('title', 'Pencatatan Fisik & Antropometri')
 @section('breadcrumbs', 'Beranda > Daftar Anggota > Pencatatan Fisik')
 @section('page_title', 'Pencatatan Fisik & Antropometri')
 
 @section('content')
-<p class="text-muted mb-4">Mencatat data pertumbuhan dan status kesehatan fisik anggota Posyandu.</p>
+<p class="text-muted mb-4">Mencatat data pertumbuhan antropometri dan status kesehatan fisik berkala anggota Posyandu.</p>
 
-<!-- Tabs -->
-<div style="display: flex; gap: 10px; margin-bottom: 2rem; background: #eee; padding: 5px; border-radius: 12px; width: fit-content;">
-    @foreach(['Balita', 'Ibu Hamil', 'Remaja', 'Lansia'] as $tab)
-    <button class="btn" style="padding: 8px 20px; font-size: 0.85rem; background: {{ ($warga->status ?? 'Balita') == $tab ? '#fff' : 'transparent' }}; box-shadow: {{ ($warga->status ?? 'Balita') == $tab ? 'var(--shadow)' : 'none' }}; font-weight: {{ ($warga->status ?? 'Balita') == $tab ? '700' : '400' }};">
-        {{ $tab }}
-    </button>
-    @endforeach
-</div>
-
-<div class="content-grid" style="grid-template-columns: 2fr 1fr;">
+<div class="content-grid">
+    <!-- Kolom Kiri: Formulir Input Antropometri -->
     <div class="card">
-        <div style="background: #f0f4f1; border-left: 4px solid var(--primary); padding: 1rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <!-- Banner Identitas Warga Sasaran -->
+        <div style="background: var(--primary-light); border-left: 4px solid var(--primary); padding: 1rem 1.25rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 10px;">
             <div>
-                <span style="font-size: 0.7rem; text-transform: uppercase; color: var(--primary); font-weight: 700;">Warga Sasaran Terpilih</span>
-                <div style="font-weight: 700; font-size: 1.05rem;">
+                <span style="font-size: 0.7rem; text-transform: uppercase; color: var(--primary); font-weight: 700; letter-spacing: 0.05em;">
+                    Warga Sasaran Terpilih
+                </span>
+                <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-main);">
                     {{ $warga->nama_lengkap ?? 'Belum ada warga dipilih' }} 
-                    <span style="font-weight: 400; color: #666; font-size: 0.85rem; margin-left: 10px;">(NIK: {{ $warga->NIK ?? '-' }})</span>
+                    <span style="font-weight: 400; color: var(--text-muted); font-size: 0.85rem;">(NIK: {{ $warga->NIK ?? '-' }})</span>
                 </div>
             </div>
-            <a href="{{ route('admin.daftar-anggota') }}" style="font-size: 0.8rem; color: var(--primary); font-weight: 700; text-decoration: none;">
-                <i class="fa-solid fa-arrows-rotate"></i> GANTI WARGA
+            <a href="{{ route('admin.daftar-anggota') }}" class="btn btn-outline-primary btn-xs">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                <span>Ganti Warga</span>
             </a>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 2rem;">
-            <div class="icon-btn" style="background: var(--primary-light); color: var(--primary);"><i class="fa-solid fa-file-waveform"></i></div>
-            <div>
-                <h4 class="serif">Formulir Pemeriksaan {{ $warga->status ?? 'Balita' }}</h4>
-                <p style="font-size: 0.8rem; color: var(--text-muted);">Silakan lengkapi parameter antropometri pengukuran di bawah ini.</p>
-            </div>
+        <div class="card-title">
+            <span><i class="fa-solid fa-file-waveform text-primary" style="margin-right: 8px;"></i> Formulir Pengukuran {{ $warga->status ?? 'Balita' }}</span>
+            <span style="font-size: 0.75rem; color: var(--danger); font-weight: 500;">* Bidang wajib diisi</span>
         </div>
 
         <form action="{{ route('admin.pemeriksaan.store') }}" method="POST">
             @csrf
             <input type="hidden" name="nik" value="{{ $warga->NIK ?? '' }}">
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <!-- Baris 1: Tinggi Badan & Berat Badan -->
+            <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Tinggi Badan (cm) <span style="color: red;">*</span></label>
+                    <label class="form-label">Tinggi Badan (cm) <span class="text-danger">*</span></label>
                     <div style="position: relative;">
-                        <input type="number" step="0.1" name="tb" class="form-control" placeholder="0.0" required>
-                        <span style="position: absolute; right: 15px; top: 12px; color: #999; font-size: 0.8rem;">cm</span>
+                        <input type="number" step="0.1" name="tb" class="form-control" placeholder="Contoh: 85.5" required>
+                        <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-subtle); font-size: 0.85rem; font-weight: 600;">cm</span>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Berat Badan (kg) <span style="color: red;">*</span></label>
+                    <label class="form-label">Berat Badan (kg) <span class="text-danger">*</span></label>
                     <div style="position: relative;">
-                        <input type="number" step="0.1" name="bb" class="form-control" placeholder="0.0" required>
-                        <span style="position: absolute; right: 15px; top: 12px; color: #999; font-size: 0.8rem;">kg</span>
+                        <input type="number" step="0.1" name="bb" class="form-control" placeholder="Contoh: 11.2" required>
+                        <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-subtle); font-size: 0.85rem; font-weight: 600;">kg</span>
                     </div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <!-- Baris 2: Lingkar Kepala & Lingkar Lengan Atas -->
+            <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Lingkar Kepala (cm)</label>
                     <div style="position: relative;">
-                        <input type="number" step="0.1" name="lk" class="form-control" placeholder="0.0">
-                        <span style="position: absolute; right: 15px; top: 12px; color: #999; font-size: 0.8rem;">cm</span>
+                        <input type="number" step="0.1" name="lk" class="form-control" placeholder="Contoh: 46.0">
+                        <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-subtle); font-size: 0.85rem; font-weight: 600;">cm</span>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Lingkar Lengan Atas (cm)</label>
+                    <label class="form-label">Lingkar Lengan Atas (LiLA) (cm)</label>
                     <div style="position: relative;">
-                        <input type="number" step="0.1" name="la" class="form-control" placeholder="0.0">
-                        <span style="position: absolute; right: 15px; top: 12px; color: #999; font-size: 0.8rem;">cm</span>
+                        <input type="number" step="0.1" name="la" class="form-control" placeholder="Contoh: 14.5">
+                        <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-subtle); font-size: 0.85rem; font-weight: 600;">cm</span>
                     </div>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Catatan Kesehatan / Rekomendasi Gizi</label>
-                <textarea name="catatan" class="form-control" rows="4" placeholder="Masukkan indikator kesehatan, catatan nafsu makan, imunisasi yang diberikan, atau rujukan..."></textarea>
+            <!-- Baris 3: Lingkar Perut & Tekanan Darah -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Lingkar Perut (cm)</label>
+                    <div style="position: relative;">
+                        <input type="number" step="0.1" name="lp" class="form-control" placeholder="Contoh: 44.0">
+                        <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-subtle); font-size: 0.85rem; font-weight: 600;">cm</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tekanan Darah (Tensi / mmHg)</label>
+                    <input type="text" name="tensi" class="form-control" placeholder="Contoh: 120/80">
+                </div>
             </div>
 
-            <div style="display: flex; gap: 15px; margin-top: 2rem;">
-                <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">
-                    <i class="fa-solid fa-save"></i> Simpan Pemeriksaan
+            <!-- Catatan Tambahan Petugas Medis -->
+            <div class="form-group">
+                <label class="form-label">Catatan Kesehatan & Rekomendasi Gizi</label>
+                <textarea name="catatan" rows="3" class="form-control" placeholder="Catatan evaluasi atau vitamin/PMT yang diserahkan..."></textarea>
+            </div>
+
+            <!-- Tombol Aksi Formulir -->
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 2rem; flex-wrap: wrap;">
+                <button type="reset" class="btn btn-secondary">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>Atur Ulang</span>
                 </button>
-                <button type="reset" class="btn" style="background: #eee; color: #666;">Atur Ulang</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span>Simpan Hasil Pemeriksaan</span>
+                </button>
             </div>
         </form>
     </div>
 
-    <div style="display: flex; flex-direction: column; gap: 24px;">
-        <div class="card">
-            <h4 class="serif mb-4" style="font-size: 1rem;">Profil Subjek Pemeriksaan</h4>
-            <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 2rem;">
-                <img src="https://ui-avatars.com/api/?name={{ urlencode($warga->nama_lengkap ?? 'Posyandu') }}&background=random" style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 1rem; object-fit: cover;">
-                <h5 class="serif" style="font-size: 1.1rem; margin-bottom: 4px;">{{ $warga->nama_lengkap ?? '-' }}</h5>
-                <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">NIK: {{ $warga->NIK ?? '-' }}</p>
-                <span style="display: inline-block; margin-top: 6px; font-size: 0.7rem; font-weight: 700; background: #f0f4f1; color: var(--primary); padding: 3px 10px; border-radius: 12px;">
-                    {{ $warga->status ?? 'Balita' }}
-                </span>
+    <!-- Kolom Kanan: Panduan Standar Antropometri -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="card" style="background: var(--bg-card-subtle);">
+            <div class="card-title">
+                <span><i class="fa-solid fa-ruler-combined text-primary" style="margin-right: 8px;"></i> Standar Pengukuran</span>
             </div>
-
-            <div style="display: flex; flex-direction: column; gap: 15px;">
-                <div style="background: #fdf8f3; padding: 12px; border-radius: 12px;">
-                    <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Nama Orang Tua / Wali</div>
-                    <div style="font-weight: 600;">{{ $warga->nama_ibu ?? $warga->nama_ayah ?? '-' }}</div>
+            
+            <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.85rem;">
+                <div style="border-left: 3px solid var(--primary); padding-left: 10px;">
+                    <div style="font-weight: 700; color: var(--text-main);">Tinggi / Panjang Badan</div>
+                    <p style="color: var(--text-muted); margin: 0;">Anak < 2 tahun diukur terlentang (panjang badan), anak >= 2 tahun diukur berdiri tegak (mikrotoa).</p>
                 </div>
-                <div style="background: #fdf8f3; padding: 12px; border-radius: 12px;">
-                    <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Usia</div>
-                    <div style="font-weight: 600;">
-                        @if(isset($warga->tanggal_lahir))
-                            {{ \Carbon\Carbon::parse($warga->tanggal_lahir)->age }} Tahun
-                        @else
-                            -
-                        @endif
-                    </div>
+                <div style="border-left: 3px solid var(--accent); padding-left: 10px;">
+                    <div style="font-weight: 700; color: var(--text-main);">Pita LiLA (Ibu Hamil & Balita)</div>
+                    <p style="color: var(--text-muted); margin: 0;">LiLA < 23.5 cm pada Ibu Hamil menandakan risiko Kurang Energi Kronis (KEK).</p>
+                </div>
+                <div style="border-left: 3px solid var(--info); padding-left: 10px;">
+                    <div style="font-weight: 700; color: var(--text-main);">Lingkar Kepala</div>
+                    <p style="color: var(--text-muted); margin: 0;">Diukur melingkari dahi di atas alis mata dan tonjolan kepala belakang.</p>
                 </div>
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div class="card" style="padding: 1.5rem; text-align: center; background: #f5f5f0;">
-                <i class="fa-solid fa-syringe" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 10px;"></i>
-                <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">Imunisasi</div>
+        <div class="card" style="background: var(--primary-light); border-color: var(--primary-border);">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <i class="fa-solid fa-shield-virus text-primary" style="font-size: 1.25rem;"></i>
+                <div style="font-weight: 700; color: var(--primary);">Intervensi Stunting</div>
             </div>
-            <div class="card" style="padding: 1.5rem; text-align: center; background: #f5f5f0;">
-                <i class="fa-solid fa-apple-whole" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 10px;"></i>
-                <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">Gizi & PMT</div>
-            </div>
+            <p style="font-size: 0.825rem; color: var(--text-main); margin: 0;">
+                Setiap pengukuran berat badan dan tinggi badan yang berada di bawah -2 Standar Deviasi (SD) wajib dilaporkan ke bidan desa untuk rujukan Puskesmas.
+            </p>
         </div>
     </div>
 </div>
