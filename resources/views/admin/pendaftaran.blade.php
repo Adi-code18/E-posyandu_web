@@ -89,12 +89,37 @@
             <!-- Status / Kategori Siklus Hidup -->
             <div class="form-group">
                 <label class="form-label">Kategori Sasaran Siklus Hidup <span class="text-danger">*</span></label>
-                <select name="status" class="form-control" required>
+                <select name="status" id="statusSasaranSelect" class="form-control" required onchange="togglePrematurField()">
                     <option value="Balita" {{ old('status') == 'Balita' ? 'selected' : '' }}>Bayi & Balita (0–5 Tahun)</option>
                     <option value="Ibu Hamil" {{ old('status') == 'Ibu Hamil' ? 'selected' : '' }}>Ibu Hamil (ANC)</option>
                     <option value="Remaja" {{ old('status') == 'Remaja' ? 'selected' : '' }}>Remaja & Usia Produktif</option>
                     <option value="Lansia" {{ old('status') == 'Lansia' ? 'selected' : '' }}>Lansia (Posbindu PTM)</option>
                 </select>
+            </div>
+
+            <!-- Modul Khusus Bayi Prematur (Standar Kemenkes / Kurva Fenton) -->
+            <div id="prematurContainer" style="background: #faf8f5; border: 1px solid #ebe6dd; border-radius: 12px; padding: 14px 16px; margin-top: 1rem; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.88rem; color: #1f2937; margin: 0; cursor: pointer;">
+                        <input type="checkbox" name="is_prematur" id="isPrematurCheck" value="1" {{ old('is_prematur') ? 'checked' : '' }} onchange="toggleGestasiInput()">
+                        <span>Kelahiran Prematur (< 37 Minggu)</span>
+                    </label>
+                    <span class="tag tag-warning" style="font-size: 0.7rem;">Kurva Fenton ILP</span>
+                </div>
+                <p style="font-size: 0.775rem; color: #6b7280; margin: 0 0 10px 0;">
+                    Sistem otomatis menghitung <strong>Usia Koreksi</strong> = Usia Kronologis - (40 minggu - Usia Gestasi) untuk kurva pertumbuhan Fenton hingga usia 2 tahun (Standar Kemenkes BR-02).
+                </p>
+                <div id="gestasiInputWrap" style="display: none;">
+                    <label class="form-label" style="font-size: 0.8rem;">Usia Kehamilan saat Lahir (Minggu Gestasi)</label>
+                    <input type="number" 
+                           name="usia_kehamilan_minggu" 
+                           id="usiaKehamilanInput" 
+                           value="{{ old('usia_kehamilan_minggu', 34) }}" 
+                           class="form-control" 
+                           min="20" 
+                           max="42" 
+                           placeholder="Contoh: 34 (Minggu)">
+                </div>
             </div>
 
             <!-- Sub-Heading Informasi Orang Tua / Keluarga -->
@@ -164,4 +189,29 @@
         </div>
     </div>
 </div>
+
+<script>
+function togglePrematurField() {
+    const status = document.getElementById('statusSasaranSelect').value;
+    const container = document.getElementById('prematurContainer');
+    if (status === 'Balita') {
+        container.style.display = 'block';
+    } else {
+        container.style.display = 'none';
+        document.getElementById('isPrematurCheck').checked = false;
+        toggleGestasiInput();
+    }
+}
+
+function toggleGestasiInput() {
+    const isChecked = document.getElementById('isPrematurCheck').checked;
+    const wrap = document.getElementById('gestasiInputWrap');
+    wrap.style.display = isChecked ? 'block' : 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    togglePrematurField();
+    toggleGestasiInput();
+});
+</script>
 @endsection

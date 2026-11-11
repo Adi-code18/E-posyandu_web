@@ -15,6 +15,9 @@
     <meta name="theme-color" content="#2d6a4f">
     <title>@yield('title', 'Admin') — e-Posyandu</title>
     
+    <!-- Favicon Logo Resmi -->
+    <link rel="icon" type="image/png" href="{{ asset('assets/e-posyandu.png') }}">
+    
     <!-- Google Fonts: Inter & Playfair Display -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,15 +42,31 @@
         <!-- Sidebar / Drawer Navigasi -->
         <aside class="sidebar">
             <div class="logo-section">
-                <div class="logo-icon-wrap">
-                    <i class="fa-solid fa-leaf"></i>
-                </div>
-                <span>e-Posyandu</span>
+                <a href="{{ route('admin.dashboard') }}" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit;">
+                    <img src="{{ asset('assets/e-posyandu.png') }}" alt="Logo e-Posyandu" class="logo-brand-img" style="width: 36px; height: 36px; object-fit: contain;">
+                    <span>e-Posyandu</span>
+                </a>
                 <!-- Tombol Tutup Khusus Tampilan Mobile -->
                 <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Tutup Menu">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
+
+            @php
+                $currentUser = Auth::user();
+                $userDisplayName = $currentUser ? $currentUser->nama : session('kader_nama', 'Ibu Kader Rahmawati');
+                $userDisplayRole = $currentUser ? $currentUser->jabatan : session('kader_jabatan', 'Kader Aktif (RW 01)');
+                $userRoleCode = $currentUser ? $currentUser->role : session('kader_role', 'kader');
+                $userDisplayEmail = $currentUser ? ($currentUser->username . '@posyandu.desa.id') : session('kader_email', 'kader.anggrek@posyandu.desa.id');
+                $userAvatar = session('kader_avatar');
+                $avatarBg = match($userRoleCode) {
+                    'admin' => '1e293b',
+                    'ketua' => 'b45309',
+                    'bidan' => '0284c7',
+                    default => '2d6a4f',
+                };
+                $avatarUrl = $userAvatar ? asset($userAvatar) : 'https://ui-avatars.com/api/?name=' . urlencode($userDisplayName) . '&background=' . $avatarBg . '&color=fff';
+            @endphp
             
             <nav class="nav-links">
                 <ul>
@@ -57,36 +76,54 @@
                             <span>Dashboard</span>
                         </a>
                     </li>
+
+                    @if(in_array($userRoleCode, ['admin', 'kader']))
                     <li class="nav-item">
                         <a href="{{ route('admin.pendaftaran') }}" class="nav-link {{ request()->routeIs('admin.pendaftaran') ? 'active' : '' }}">
                             <i class="fa-solid fa-user-plus"></i>
                             <span>Pendaftaran Masyarakat</span>
                         </a>
                     </li>
+                    @endif
+
                     <li class="nav-item">
                         <a href="{{ route('admin.daftar-anggota') }}" class="nav-link {{ request()->routeIs('admin.daftar-anggota', 'admin.profil') ? 'active' : '' }}">
                             <i class="fa-solid fa-address-card"></i>
                             <span>Daftar Anggota</span>
                         </a>
                     </li>
+
+                    @if(in_array($userRoleCode, ['admin', 'bidan', 'kader']))
                     <li class="nav-item">
                         <a href="{{ route('admin.pemeriksaan') }}" class="nav-link {{ request()->routeIs('admin.pemeriksaan') ? 'active' : '' }}">
                             <i class="fa-solid fa-stethoscope"></i>
                             <span>Pencatatan Fisik</span>
                         </a>
                     </li>
+                    @endif
+
+                    <li class="nav-item">
+                        <a href="{{ route('admin.kunjungan-rumah') }}" class="nav-link {{ request()->routeIs('admin.kunjungan-rumah*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-house-chimney-medical"></i>
+                            <span>Kunjungan Rumah</span>
+                        </a>
+                    </li>
+
                     <li class="nav-item">
                         <a href="{{ route('admin.laporan-kesehatan') }}" class="nav-link {{ request()->routeIs('admin.laporan-kesehatan') ? 'active' : '' }}">
                             <i class="fa-solid fa-file-medical"></i>
                             <span>Laporan Kesehatan</span>
                         </a>
                     </li>
+
+                    @if(in_array($userRoleCode, ['admin', 'bidan', 'kader']))
                     <li class="nav-item">
                         <a href="{{ route('admin.manajemen-artikel') }}" class="nav-link {{ request()->routeIs('admin.manajemen-artikel') ? 'active' : '' }}">
                             <i class="fa-solid fa-newspaper"></i>
                             <span>Artikel Edukasi</span>
                         </a>
                     </li>
+                    @endif
                 </ul>
             </nav>
 
@@ -204,13 +241,6 @@
                     </div>
 
                     <!-- Tombol & Dropdown Profil Petugas -->
-                    @php
-                        $userDisplayName = session('kader_nama', 'Ibu Kader Rahmawati');
-                        $userDisplayRole = session('kader_jabatan', 'Kader Aktif (RW 01)');
-                        $userDisplayEmail = session('kader_email', 'kader.anggrek@posyandu.desa.id');
-                        $userAvatar = session('kader_avatar');
-                        $avatarUrl = $userAvatar ? asset($userAvatar) : 'https://ui-avatars.com/api/?name=' . urlencode($userDisplayName) . '&background=2d6a4f&color=fff';
-                    @endphp
                     <div class="header-action-wrapper" id="profileWrapper">
                         <button type="button" class="profile-dropdown" id="profileDropdownBtn" aria-expanded="false" aria-haspopup="true">
                             <img src="{{ $avatarUrl }}" alt="Avatar Petugas" class="profile-avatar">
@@ -298,9 +328,9 @@
 
     <!-- 1. Modal Pencarian Cepat Spotlight (Ctrl+K) -->
     <div id="quickSearchModal" class="modal-overlay">
-        <div class="modal-box modal-md" style="max-width: 540px; padding: 1.25rem;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-                <h3 class="serif" style="font-size: 1.15rem; margin: 0; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+        <div class="modal-box modal-md" style="max-width: 540px; padding: 1.5rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+                <h3 class="serif" style="font-size: 1.2rem; margin: 0; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
                     <i class="fa-solid fa-magnifying-glass text-primary"></i>
                     Pencarian Cepat Posyandu
                 </h3>
@@ -310,7 +340,7 @@
             </div>
 
             <div style="position: relative; margin-bottom: 1.25rem;">
-                <input type="text" id="quickSearchInput" class="form-control" style="padding: 10px 14px 10px 40px; font-size: 0.95rem;" placeholder="Ketik nama warga, NIK, atau layanan...">
+                <input type="text" id="quickSearchInput" class="form-control" style="padding: 12px 14px 12px 42px; font-size: 0.95rem; border-radius: 12px;" placeholder="Ketik nama warga, NIK, atau layanan...">
                 <i class="fa-solid fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
             </div>
 
@@ -318,8 +348,8 @@
                 Pintasan Menu & Layanan Cepat
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-                <a href="{{ route('admin.daftar-anggota') }}" class="dropdown-action-item" style="border-radius: var(--radius-md); padding: 8px 12px; background: var(--bg-card-subtle);">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <a href="{{ route('admin.daftar-anggota') }}" class="dropdown-action-item" style="border-radius: 12px; padding: 10px 14px; background: #faf8f5; border: 1px solid #ede8de;">
                     <i class="fa-solid fa-users text-primary"></i>
                     <div style="flex-grow: 1;">
                         <div style="font-weight: 600; font-size: 0.875rem;">Daftar Anggota & Rekam Medis</div>
@@ -328,7 +358,7 @@
                     <i class="fa-solid fa-arrow-right" style="font-size: 0.75rem; opacity: 0.5;"></i>
                 </a>
 
-                <a href="{{ route('admin.pendaftaran') }}" class="dropdown-action-item" style="border-radius: var(--radius-md); padding: 8px 12px; background: var(--bg-card-subtle);">
+                <a href="{{ route('admin.pendaftaran') }}" class="dropdown-action-item" style="border-radius: 12px; padding: 10px 14px; background: #faf8f5; border: 1px solid #ede8de;">
                     <i class="fa-solid fa-user-plus text-primary"></i>
                     <div style="flex-grow: 1;">
                         <div style="font-weight: 600; font-size: 0.875rem;">Pendaftaran Sasaran Baru</div>
@@ -337,7 +367,7 @@
                     <i class="fa-solid fa-arrow-right" style="font-size: 0.75rem; opacity: 0.5;"></i>
                 </a>
 
-                <a href="{{ route('admin.pemeriksaan') }}" class="dropdown-action-item" style="border-radius: var(--radius-md); padding: 8px 12px; background: var(--bg-card-subtle);">
+                <a href="{{ route('admin.pemeriksaan') }}" class="dropdown-action-item" style="border-radius: 12px; padding: 10px 14px; background: #faf8f5; border: 1px solid #ede8de;">
                     <i class="fa-solid fa-stethoscope text-primary"></i>
                     <div style="flex-grow: 1;">
                         <div style="font-weight: 600; font-size: 0.875rem;">Pencatatan Fisik & Antropometri</div>
@@ -346,11 +376,11 @@
                     <i class="fa-solid fa-arrow-right" style="font-size: 0.75rem; opacity: 0.5;"></i>
                 </a>
 
-                <a href="{{ route('admin.laporan-kesehatan') }}" class="dropdown-action-item" style="border-radius: var(--radius-md); padding: 8px 12px; background: var(--bg-card-subtle);">
+                <a href="{{ route('admin.laporan-kesehatan') }}" class="dropdown-action-item" style="border-radius: 12px; padding: 10px 14px; background: #faf8f5; border: 1px solid #ede8de;">
                     <i class="fa-solid fa-file-medical text-primary"></i>
                     <div style="flex-grow: 1;">
                         <div style="font-weight: 600; font-size: 0.875rem;">Laporan Kesehatan & Status Gizi</div>
-                        <div style="font-size: 0.725rem; color: var(--text-muted);">Evaluasi status gizi stunting dan grafik rekap posyandu</div>
+                        <div style="font-size: 0.725rem; color: var(--text-muted);">Evaluasi status gizi stunting dan rekap posyandu</div>
                     </div>
                     <i class="fa-solid fa-arrow-right" style="font-size: 0.75rem; opacity: 0.5;"></i>
                 </a>
@@ -360,11 +390,11 @@
 
     <!-- 2. Modal Pengaturan Akun & Posko Posyandu -->
     <div id="settingsModal" class="modal-overlay">
-        <div class="modal-box modal-md">
+        <div class="modal-box modal-md" style="max-width: 560px;">
             <div class="modal-header">
                 <div>
-                    <h3 class="serif" style="font-size: 1.25rem; margin: 0; color: var(--text-main);">
-                        <i class="fa-solid fa-sliders text-primary" style="margin-right: 8px;"></i>
+                    <h3 class="serif" style="font-size: 1.25rem; margin: 0; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-sliders text-primary"></i>
                         Pengaturan Akun & Posko
                     </h3>
                     <div style="font-size: 0.825rem; color: var(--text-muted); margin-top: 2px;">
@@ -380,31 +410,31 @@
                 <div style="display: flex; flex-direction: column; gap: 14px;">
                     <div class="form-group">
                         <label class="form-label">Nama Posko Posyandu</label>
-                        <input type="text" id="settingPoskoName" class="form-control" value="Posyandu Anggrek 01" required>
+                        <input type="text" id="settingPoskoName" class="form-control" value="Posyandu Anggrek 01" required style="border-radius: 12px;">
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div class="form-group">
                             <label class="form-label">Wilayah Rukun Warga (RW)</label>
-                            <input type="text" id="settingRW" class="form-control" value="RW 01" required>
+                            <input type="text" id="settingRW" class="form-control" value="RW 01" required style="border-radius: 12px;">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Desa / Kelurahan</label>
-                            <input type="text" id="settingDesa" class="form-control" value="Desa Sejahtera" required>
+                            <input type="text" id="settingDesa" class="form-control" value="Desa Sejahtera" required style="border-radius: 12px;">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Bidan Pembina / Koordinator Wilayah</label>
-                        <input type="text" id="settingBidan" class="form-control" value="Bidan Siti Aminah, S.Tr.Keb" required>
+                        <input type="text" id="settingBidan" class="form-control" value="Bidan Siti Aminah, S.Tr.Keb" required style="border-radius: 12px;">
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Nomor WhatsApp Pengingat Jadwal</label>
-                        <input type="text" id="settingWA" class="form-control" value="0812-3456-7890" required>
+                        <input type="text" id="settingWA" class="form-control" value="0812-3456-7890" required style="border-radius: 12px;">
                     </div>
 
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-card-subtle); border-radius: var(--radius-md); border: 1px solid var(--border-color-light);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: #faf8f5; border-radius: 12px; border: 1px solid #ede8de;">
                         <div>
                             <div style="font-weight: 600; font-size: 0.875rem; color: var(--text-main);">Kirim Notifikasi Otomatis</div>
                             <div style="font-size: 0.775rem; color: var(--text-muted);">Kirim pesan pengingat ke warga H-1 jadwal posyandu</div>
@@ -413,10 +443,10 @@
                     </div>
                 </div>
 
-                <div class="modal-footer" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('settingsModal')">Batal</button>
-                    <button type="submit" class="btn btn-primary btn-sm">
-                        <i class="fa-solid fa-floppy-disk"></i>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('settingsModal')" style="border-radius: 9999px; padding: 8px 18px;">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm" style="background: #2d6a4f; border-radius: 9999px; padding: 8px 20px;">
+                        <i class="fa-solid fa-floppy-disk" style="margin-right: 4px;"></i>
                         <span>Simpan Perubahan</span>
                     </button>
                 </div>
@@ -435,13 +465,16 @@
                 Pastikan seluruh pencatatan data pemeriksaan posyandu telah tersimpan sebelum mengakhiri sesi.
             </p>
             <div style="display: flex; justify-content: center; gap: 10px;">
-                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('logoutModal')">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('logoutModal')" style="border-radius: 9999px; padding: 8px 18px;">
                     Tetap di Sini
                 </button>
-                <a href="{{ route('login') }}" class="btn btn-danger btn-sm">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>Ya, Keluar</span>
-                </a>
+                <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
+                    @csrf
+                    <button type="submit" class="btn btn-danger btn-sm" style="border-radius: 9999px; padding: 8px 20px;">
+                        <i class="fa-solid fa-right-from-bracket" style="margin-right: 4px;"></i>
+                        <span>Ya, Keluar</span>
+                    </button>
+                </form>
             </div>
         </div>
     </div>

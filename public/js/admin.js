@@ -128,14 +128,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Close modals on clicking outside modal content or pressing Escape
     document.addEventListener('click', (e) => {
-        if (e.target.classList && e.target.classList.contains('modal-overlay')) {
+        if (e.target.classList && (e.target.classList.contains('modal-overlay') || e.target.classList.contains('modal'))) {
             window.closeModal(e.target.id);
         }
     });
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            const activeModal = document.querySelector('.modal-overlay.active');
+            const activeModal = document.querySelector('.modal-overlay.active, .modal.active');
             if (activeModal) {
                 window.closeModal(activeModal.id);
             }

@@ -12,6 +12,9 @@
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Favicon Logo Resmi -->
+    <link rel="icon" type="image/png" href="{{ asset('assets/e-posyandu.png') }}">
 
     <style>
         :root {
@@ -455,8 +458,8 @@
     <!-- Top Navigation Bar -->
     <header class="top-navbar">
         <a href="{{ route('admin.dashboard') }}" class="brand-pill">
-            <div class="brand-logo-icon">
-                <i class="fa-solid fa-shield-heart"></i>
+            <div class="brand-logo-icon" style="background: transparent;">
+                <img src="{{ asset('assets/e-posyandu.png') }}" alt="Logo e-Posyandu" style="width: 32px; height: 32px; object-fit: contain;">
             </div>
             <span>e-Posyandu</span>
         </a>

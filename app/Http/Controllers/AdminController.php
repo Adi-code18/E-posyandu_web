@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\File;
 use App\Models\Warga;
@@ -11,6 +12,9 @@ use App\Models\User;
 use App\Models\PemeriksaanBalita;
 use App\Models\InformasiUmum;
 use App\Models\LaporanKesehatan;
+use App\Models\KartuKembangAnak;
+use App\Models\KontrolTtd;
+use App\Models\KunjunganRumah;
 
 class AdminController extends Controller
 {
@@ -48,6 +52,8 @@ class AdminController extends Controller
             'status' => 'required|string',
             'nama_ibu' => 'nullable|string|max:255',
             'nama_ayah' => 'nullable|string|max:255',
+            'is_prematur' => 'nullable|boolean',
+            'usia_kehamilan_minggu' => 'nullable|numeric|min:20|max:42',
         ], [
             'NIK.required' => 'Nomor Induk Kependudukan (NIK) wajib diisi.',
             'NIK.numeric' => 'NIK harus berupa deretan angka.',
@@ -63,6 +69,8 @@ class AdminController extends Controller
 
         $validated['nama_ayah'] = !empty($validated['nama_ayah']) ? $validated['nama_ayah'] : '-';
         $validated['nama_ibu'] = !empty($validated['nama_ibu']) ? $validated['nama_ibu'] : '-';
+        $validated['is_prematur'] = $request->boolean('is_prematur');
+        $validated['usia_kehamilan_minggu'] = $validated['is_prematur'] ? $request->input('usia_kehamilan_minggu') : null;
         $validated['id_kader'] = $kader ? $kader->id_kader : null;
         $validated['id_user'] = $user ? $user->id_user : null;
 
@@ -151,8 +159,175 @@ class AdminController extends Controller
 
     public function profil($nik)
     {
-        $warga = Warga::where('NIK', $nik)->firstOrFail();
+        $warga = Warga::with(['kartuKembangAnak', 'kontrolTtd', 'kunjunganRumah'])->where('NIK', $nik)->firstOrFail();
         return view('admin.profil', compact('warga'));
+    }
+
+    /**
+     * Modul Kunjungan Rumah (Home Visit - Kader & Pustu ILP Standar Kemenkes)
+     */
+    public function kunjunganRumah(Request $request)
+    {
+        $query = KunjunganRumah::with(['warga', 'kader'])->orderBy('tanggal', 'desc');
+
+        if ($request->filled('kategori') && $request->kategori !== 'Semua') {
+            $query->where('kategori_sasaran', $request->kategori);
+        }
+
+        if ($request->filled('status_rujuk') && $request->status_rujuk !== 'Semua') {
+            $query->where('status_tindak_lanjut', $request->status_rujuk);
+        }
+
+        $kunjunganList = $query->paginate(10);
+
+        $stats = [
+            'total' => KunjunganRumah::count(),
+            'bumil' => KunjunganRumah::where('kategori_sasaran', 'like', '%Bumil%')->count(),
+            'balita' => KunjunganRumah::where('kategori_sasaran', 'like', '%Balita%')->count(),
+            'tanda_bahaya' => KunjunganRumah::where('tanda_bahaya_ditemukan', true)->count(),
+            'rujukan' => KunjunganRumah::where('status_tindak_lanjut', 'like', '%Rujuk%')->count(),
+        ];
+
+        // Sasaran warga untuk modal tambah kunjungan rumah
+        $daftarWarga = Warga::select('NIK', 'nama_lengkap', 'status')->orderBy('nama_lengkap', 'asc')->get();
+
+        return view('admin.kunjungan-rumah', compact('kunjunganList', 'stats', 'daftarWarga'));
+    }
+
+    public function kunjunganRumahStore(Request $request)
+    {
+        $validated = $request->validate([
+            'NIK' => 'required|exists:warga,NIK',
+            'tanggal' => 'required|date',
+            'kategori_sasaran' => 'required|string',
+            'checklist' => 'nullable|array',
+            'tanda_bahaya' => 'nullable|boolean',
+            'status_tindak_lanjut' => 'required|string',
+            'catatan' => 'nullable|string',
+        ]);
+
+        $kader = Kader::first();
+
+        KunjunganRumah::create([
+            'NIK' => $validated['NIK'],
+            'id_kader' => $kader ? $kader->id_kader : null,
+            'tanggal' => $validated['tanggal'],
+            'kategori_sasaran' => $validated['kategori_sasaran'],
+            'checklist_hasil' => $validated['checklist'] ?? [],
+            'tanda_bahaya_ditemukan' => $request->boolean('tanda_bahaya'),
+            'status_tindak_lanjut' => $validated['status_tindak_lanjut'],
+            'catatan' => $validated['catatan'] ?? null,
+        ]);
+
+        return redirect()->route('admin.kunjungan-rumah')->with('success', 'Hasil kunjungan rumah (Home Visit ILP) berhasil dicatat ke sistem');
+    }
+
+    /**
+     * Pencatatan 7 Aspek Kartu Kembang Anak (KKA Digital) Kemenkes
+     */
+    public function kkaStore(Request $request)
+    {
+        $validated = $request->validate([
+            'NIK' => 'required|exists:warga,NIK',
+            'tanggal_pemeriksaan' => 'required|date',
+            'usia_bulan' => 'required|integer|min:0|max:72',
+            'catatan' => 'nullable|string',
+        ]);
+
+        $aspek = [
+            'gerak_kasar' => $request->boolean('gerak_kasar', true),
+            'gerak_halus' => $request->boolean('gerak_halus', true),
+            'komunikasi_pasif' => $request->boolean('komunikasi_pasif', true),
+            'komunikasi_aktif' => $request->boolean('komunikasi_aktif', true),
+            'kecerdasan' => $request->boolean('kecerdasan', true),
+            'menolong_diri_sendiri' => $request->boolean('menolong_diri_sendiri', true),
+            'tingkah_laku_sosial' => $request->boolean('tingkah_laku_sosial', true),
+        ];
+
+        // Hitung apakah ada aspek yang tidak tercapai (di bawah garis merah KKA)
+        $belumTercapai = in_array(false, $aspek, true);
+
+        // Ambil riwayat KKA terakhir anak ini untuk hitung ketidaktercapaian beruntun (BR-03 / UAC-01)
+        $lastKka = KartuKembangAnak::where('NIK', $validated['NIK'])
+            ->orderBy('tanggal_pemeriksaan', 'desc')
+            ->first();
+
+        $beruntun = 0;
+        if ($belumTercapai) {
+            $beruntun = ($lastKka && $lastKka->capai_garis_merah) ? ($lastKka->bulan_tidak_capai_beruntun + 1) : 1;
+        }
+
+        // Aturan Bisnis BR-03: jika >= 2 bulan berturut-turut di bawah garis merah, wajib rujuk
+        $statusRujuk = 'Normal';
+        if ($beruntun >= 2) {
+            $statusRujuk = 'Rujuk ke Puskesmas';
+        } elseif ($belumTercapai) {
+            $statusRujuk = 'Perlu Pemantauan';
+        }
+
+        $kader = Kader::first();
+        $user = User::first();
+
+        KartuKembangAnak::create(array_merge($aspek, [
+            'NIK' => $validated['NIK'],
+            'id_kader' => $kader ? $kader->id_kader : null,
+            'id_user' => $user ? $user->id_user : null,
+            'tanggal_pemeriksaan' => $validated['tanggal_pemeriksaan'],
+            'usia_bulan' => $validated['usia_bulan'],
+            'capai_garis_merah' => $belumTercapai,
+            'bulan_tidak_capai_beruntun' => $beruntun,
+            'status_rujuk' => $statusRujuk,
+            'catatan' => $validated['catatan'] ?? null,
+        ]));
+
+        if ($statusRujuk === 'Rujuk ke Puskesmas') {
+            return redirect()->back()->with('warning', 'Peringatan Sistem: Anak tidak mencapai tugas perkembangan KKA selama 2 bulan berturut-turut! Status otomatis: Rujuk ke Puskesmas (UAC-01 / BR-03).');
+        }
+
+        return redirect()->back()->with('success', 'Data pencatatan 7 Aspek Kartu Kembang Anak (KKA) berhasil disimpan');
+    }
+
+    /**
+     * Pencatatan Kartu Kontrol Tablet Tambah Darah (TTD) Bumil & Remaja Putri
+     */
+    public function kontrolTtdStore(Request $request)
+    {
+        $validated = $request->validate([
+            'NIK' => 'required|exists:warga,NIK',
+            'tanggal_konsumsi' => 'required|date',
+            'jumlah_tablet' => 'required|integer|min:1',
+            'status_sasaran' => 'required|in:Ibu Hamil,Remaja Putri',
+            'kadar_hb' => 'nullable|numeric|min:1|max:25',
+            'efek_samping' => 'nullable|string',
+            'catatan' => 'nullable|string',
+        ]);
+
+        // UAC-04: Jika kadar Hb < 12 gr/dl, tandai Anemia
+        $statusAnemia = false;
+        if (!empty($validated['kadar_hb']) && $validated['kadar_hb'] < 12.0) {
+            $statusAnemia = true;
+        }
+
+        $kader = Kader::first();
+
+        KontrolTtd::create([
+            'NIK' => $validated['NIK'],
+            'id_kader' => $kader ? $kader->id_kader : null,
+            'tanggal_konsumsi' => $validated['tanggal_konsumsi'],
+            'jumlah_tablet' => $validated['jumlah_tablet'],
+            'status_sasaran' => $validated['status_sasaran'],
+            'kadar_hb' => $validated['kadar_hb'] ?? null,
+            'status_anemia' => $statusAnemia,
+            'efek_samping' => $validated['efek_samping'] ?? 'Tidak Ada',
+            'catatan' => $validated['catatan'] ?? null,
+        ]);
+
+        $pesan = 'Catatan konsumsi Tablet Tambah Darah (TTD) berhasil disimpan';
+        if ($statusAnemia) {
+            $pesan .= ' — Terdeteksi Anemia (Hb < 12 gr/dl), wajib pantau konsumsi TTD 1x/minggu (UAC-04)!';
+        }
+
+        return redirect()->back()->with('success', $pesan);
     }
 
     public function manajemenArtikel()
@@ -429,6 +604,83 @@ class AdminController extends Controller
 
     public function login()
     {
+        if (Auth::check()) {
+            return redirect()->route('admin.dashboard');
+        }
+
         return view('admin.login');
+    }
+
+    public function loginProcess(Request $request)
+    {
+        $credentials = $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ], [
+            'username.required' => 'Username atau NIK wajib diisi.',
+            'password.required' => 'Kata sandi wajib diisi.',
+        ]);
+
+        $remember = $request->boolean('remember');
+        $username = trim($credentials['username']);
+        $password = $credentials['password'];
+
+        // 1. Coba login langsung via model User
+        if (Auth::attempt(['username' => $username, 'password' => $password], $remember)) {
+            $request->session()->regenerate();
+            $user = Auth::user();
+
+            session([
+                'kader_nama' => $user->nama,
+                'kader_jabatan' => $user->jabatan,
+                'kader_role' => $user->role,
+                'kader_email' => $user->username . '@posyandu.desa.id',
+            ]);
+
+            return redirect()->intended(route('admin.dashboard'))
+                ->with('success', 'Selamat datang kembali, ' . $user->nama . ' (' . $user->jabatan . ')');
+        }
+
+        // 2. Jika akun belum ada di User tapi ada di tabel Kader, sinkronkan ke User dengan role 'kader'
+        $kader = Kader::where('username', $username)->first();
+        if ($kader && Hash::check($password, $kader->password)) {
+            $user = User::updateOrCreate(
+                ['username' => $kader->username],
+                [
+                    'nama' => $kader->nama_kader,
+                    'jabatan' => 'Kader Posyandu',
+                    'role' => 'kader',
+                    'password' => $kader->password,
+                ]
+            );
+
+            Auth::login($user, $remember);
+            $request->session()->regenerate();
+
+            session([
+                'kader_nama' => $user->nama,
+                'kader_jabatan' => $user->jabatan,
+                'kader_role' => $user->role,
+                'kader_email' => $user->username . '@posyandu.desa.id',
+            ]);
+
+            return redirect()->intended(route('admin.dashboard'))
+                ->with('success', 'Selamat datang kembali, ' . $user->nama . ' (Kader Lapangan)');
+        }
+
+        return back()
+            ->withInput($request->only('username', 'remember'))
+            ->withErrors([
+                'username' => 'Kombinasi username atau kata sandi tidak ditemukan dalam sistem.',
+            ]);
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('success', 'Anda telah berhasil keluar dari sistem.');
     }
 }

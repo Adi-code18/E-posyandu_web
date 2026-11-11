@@ -42,12 +42,15 @@
             <div class="form-group">
                 <label class="form-label">Kategori Edukasi Kesehatan <span class="text-danger">*</span></label>
                 <select name="kategori_info" class="form-control" required>
-                    <option value="Tumbuh Kembang">Tumbuh Kembang & Stunting</option>
-                    <option value="Nutrisi">Pola Gizi Seimbang & MPASI</option>
+                    <option value="Isi Piringku">Edukasi Gizi "Isi Piringku" Kemenkes</option>
+                    <option value="PHBS & CTPS">PHBS & Cuci Tangan Pakai Sabun (CTPS)</option>
+                    <option value="Pencegahan Anemia">Pencegahan Anemia & Suplementasi TTD</option>
+                    <option value="Tumbuh Kembang">Tumbuh Kembang, KKA & Stunting</option>
+                    <option value="Nutrisi">Pola Gizi Seimbang & MPASI 4 Bintang</option>
                     <option value="Imunisasi">Imunisasi & Vaksinasi Dasar</option>
-                    <option value="Ibu Hamil">Ibu Hamil & Pemeriksaan ANC</option>
-                    <option value="Lansia">Kesehatan Lansia & Pencegahan PTM</option>
-                    <option value="Remaja">Kesehatan Remaja & Skrining Anemia</option>
+                    <option value="Ibu Hamil">Ibu Hamil (ANC) & Pencegahan KEK</option>
+                    <option value="Remaja">Kesehatan Remaja & Pencegahan NAPZA</option>
+                    <option value="Lansia">Kesehatan Lansia & Posbindu PTM</option>
                 </select>
             </div>
 
@@ -88,6 +91,22 @@
 
     <!-- Kolom Kanan: Daftar Artikel Aktif -->
     <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="card" style="background: var(--bg-card-subtle);">
+            <div class="card-title">
+                <span><i class="fa-solid fa-plate-wheat text-primary" style="margin-right: 8px;"></i> Standar Isi Piringku Kemenkes</span>
+            </div>
+            <div style="font-size: 0.8rem; color: #4b5563; line-height: 1.5;">
+                <p style="margin-bottom: 8px;"><strong>Pedoman Porsi 1 Piring Sekali Makan:</strong></p>
+                <ul style="padding-left: 18px; margin: 0 0 10px 0; display: flex; flex-direction: column; gap: 4px;">
+                    <li><strong>50% Piring:</strong> 2/3 Sayuran & 1/3 Buah-buahan</li>
+                    <li><strong>50% Piring:</strong> 2/3 Makanan Pokok & 1/3 Lauk-Pauk</li>
+                </ul>
+                <div style="background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 8px 10px; font-size: 0.75rem; color: #2d6a4f;">
+                    <i class="fa-solid fa-hands-bubbles" style="margin-right: 4px;"></i> Disertai CTPS, minum air 8 gelas, dan aktivitas fisik 30 menit/hari.
+                </div>
+            </div>
+        </div>
+
         <div class="card" style="background: var(--bg-card-subtle);">
             <div class="card-title">
                 <span><i class="fa-solid fa-newspaper text-primary" style="margin-right: 8px;"></i> Artikel Aktif</span>

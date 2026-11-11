@@ -1,20 +1,21 @@
 <div align="center">
 
 # 🏥 E-POSYANDU
-### *Sistem Informasi Manajemen Pelayanan Kesehatan Terpadu Masyarakat*
+### *Sistem Informasi Manajemen Pelayanan Kesehatan Terpadu Masyarakat (BRD V2.0 - Standar Kemenkes ILP)*
 
 [![Laravel](https://img.shields.io/badge/Laravel-11%20%7C%2012-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
 [![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://mysql.com)
 [![REST API](https://img.shields.io/badge/REST_API-22_Endpoints-059669?style=for-the-badge&logo=fastapi&logoColor=white)](#10-dokumentasi-lengkap-22-endpoint-rest-api)
 [![Android](https://img.shields.io/badge/Android-Kotlin_Compose-3DDC84?style=for-the-badge&logo=android&logoColor=white)](#11-integrasi-mobile-client-kotlin-jetpack-compose--retrofit)
+[![BRD V2.0](https://img.shields.io/badge/Standard-Kemenkes_ILP_V2.0-2d6a4f?style=for-the-badge)](BRD-EPOSYANDU-2026-V2.0)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
 <br/>
 
 <p align="center">
-  <b>Aplikasi Web Manajemen Posyandu Modern Terintegrasi REST API untuk Klien Mobile Android</b><br/>
-  Fokus Utama pada Pengelolaan Data Warga & Kesehatan Siklus Hidup: Balita, Ibu Hamil, Remaja, Lansia, Rekam Medis KMS Digital, Edukasi Masyarakat, dan Pengaturan Keamanan Akun 2FA.
+  <b>Aplikasi Web Manajemen Posyandu Modern Terintegrasi Standar Kemenkes ILP (Integrasi Pelayanan Primer) & REST API Android</b><br/>
+  Mencakup KKA Digital (7 Aspek Perkembangan), Modul Bayi Prematur (Kurva Fenton & Usia Koreksi), Kunjungan Rumah (Home Visit), Kartu Kontrol TTD (Target 90 Tablet Bumil & Skrining Anemia Remaja), Edukasi "Isi Piringku", serta Integrasi Chatbot WhatsApp ASIK.
 </p>
 
 [🚀 Panduan Instalasi](#6-panduan-instalasi--menjalankan-proyek) •
@@ -67,33 +68,37 @@ Platform **e-Posyandu** dirancang untuk mendigitalkan tata kelola administrasi p
 
 ```mermaid
 flowchart TD
-    subgraph SIKLUS_HIDUP[" 🩺 4 Pilar Pemantauan Siklus Hidup "]
-        B["👶 Bayi & Balita<br/>(0–5 Tahun)"]
-        H["🤰 Ibu Hamil<br/>(ANC / Maternal)"]
-        R["🧑 Remaja<br/>(Skrining Anemia)"]
-        L["👴 Lansia<br/>(Posbindu PTM)"]
+    subgraph SIKLUS_HIDUP[" 🩺 4 Pilar Siklus Hidup Standar Kemenkes ILP "]
+        B["👶 Bayi & Balita<br/>(KMS & Kurva Fenton Prematur)"]
+        H["🤰 Ibu Hamil<br/>(ANC & Kontrol TTD 90 Tablet)"]
+        R["🧑 Remaja<br/>(Skrining Anemia Hb & TTD Mingguan)"]
+        L["👴 Lansia<br/>(Posbindu PTM & Skrining Hipertensi)"]
     end
 
-    subgraph PELAYANAN[" 📋 Tata Kelola & Layanan Posyandu "]
-        REG["📝 Pendaftaran & Validasi NIK 16-Digit"]
-        REC["📊 Rekam Antropometri & KMS Digital"]
-        LAP["📈 Laporan Kesehatan & Stunting"]
-        EDU["📰 Edukasi & Artikel Kesehatan"]
-        SEC["🔐 Keamanan Akun Kader & 2FA"]
+    subgraph LAYANAN_ILP[" 📋 Modul Layanan Primer & Penunjang Kemenkes "]
+        KKA["📋 KKA Digital (7 Aspek Perkembangan)"]
+        FENTON["🍼 Usia Koreksi & Pemantauan Prematur"]
+        HOME["🏠 Kunjungan Rumah (Home Visit ILP)"]
+        TTD["💊 Kartu Kontrol Tablet Tambah Darah"]
+        EDU["🥗 Edukasi Gizi 'Isi Piringku' & PHBS"]
+        ASIK["📲 Integrasi Chatbot WhatsApp ASIK"]
     end
 
-    B --- REC
-    H --- REC
-    R --- PELAYANAN
-    L --- PELAYANAN
+    B --- KKA
+    B --- FENTON
+    H --- TTD
+    R --- TTD
+    SIKLUS_HIDUP --- HOME
+    SIKLUS_HIDUP --- EDU
+    HOME --- ASIK
 ```
 
-| Siklus Sasaran | Indikator Pemantauan Utama | Intervensi & Layanan |
+| Siklus Sasaran | Indikator Pemantauan Utama | Intervensi & Layanan Standar Kemenkes ILP |
 | :--- | :--- | :--- |
-| **👶 Bayi & Balita** *(0–5 Thn)* | Berat Badan (BB), Tinggi Badan (TB), Lingkar Kepala (LK), LILA, Lingkar Perut | Deteksi dini stunting, imunisasi wajib, Vitamin A Biru/Merah, dan PMT Pemulihan |
-| **🤰 Ibu Hamil** *(ANC)* | Usia gestasi, kenaikan BB, tensi darah, pita LILA (deteksi KEK) | Pencegahan Kematian Ibu/Bayi, tablet zat besi (TTD), dan rujukan risiko tinggi |
-| **🧑 Remaja & Produktif** | Hemoglobin (Hb), tensi, Indeks Massa Tubuh (IMT), gula darah sewaktu | Pencegahan anemia remaja putri, tablet tambah darah (TTD), konseling gizi |
-| **👴 Lansia** *(Posbindu PTM)* | Tensi darah (hipertensi), kadar gula darah (DM), asam urat, evaluasi fisik | Pengendalian penyakit tidak menular, pemeriksaan rutin, dan rujukan faskes |
+| **👶 Bayi & Balita** *(0–5 Thn)* | BB, TB, LK, LiLA, LP, Usia Koreksi (bayi prematur), 7 Aspek KKA (0-72 bln) | Deteksi dini stunting (WHO/Fenton), KKA (alert rujukan nakes jika 2 bulan beruntun di bawah garis merah), PMK (Perawatan Metode Kanguru), Vit A, imunisasi |
+| **🤰 Ibu Hamil** *(ANC)* | Usia gestasi, pertambahan BB, tensi darah, pita LiLA (deteksi KEK < 23.5 cm) | Pencegahan Kematian Ibu/Bayi, Kartu Kontrol TTD (target minimal 90 tablet), PMT pemulihan, rujukan risiko tinggi |
+| **🧑 Remaja & Produktif** | Hemoglobin (Hb), tensi, Indeks Massa Tubuh (IMT), skrining gaya hidup | Pencegahan anemia (Hb < 12 gr/dl), suplementasi TTD mingguan, konseling Isi Piringku, pencegahan NAPZA |
+| **👴 Lansia** *(Posbindu PTM)* | Tensi darah (hipertensi), kadar gula darah (DM), asam urat, evaluasi fisik | Pengendalian penyakit tidak menular, pemeriksaan rutin, skrining kemandirian, dan kunjungan rumah kader |
 
 [⬆️ Kembali ke Daftar Isi](#daftar-isi)
 
@@ -227,14 +232,27 @@ erDiagram
 > [!TIP]
 > **Kata Sandi Standar untuk Seluruh Akun**: Semua akun pengujian di bawah ini menggunakan kata sandi seragam: `password`.
 
-### A. Akun Web Admin & Tenaga Medis (Tabel: users)
+### A. Akun Web Admin, Bidan, Ketua & Kader (Tabel: users & RBAC)
 
-| Nama Pengguna | Username | Peran / Jabatan | Otoritas Akses Utama |
-| :--- | :--- | :--- | :--- |
-| **Dr. Hendra Kusuma** | `ketua` | Ketua Posyandu | Pengawasan menyeluruh, persetujuan keuangan, & pengesahan laporan |
-| **Administrator Utama** | `admin` | Administrator Sistem | Akses penuh sistem, registrasi warga, logistik, & pemeliharaan |
-| **Bdn. Ratna Juwita, S.Tr.Keb** | `bidan_desa` | Bidan Desa Pembina | Validasi ANC ibu hamil, rujukan medis, & imunisasi balita |
-| **Siti Nurhaliza, A.Md.Gz** | `nutrisionis` | Petugas Gizi Puskesmas | Evaluasi status gizi antropometri balita & program stunting |
+Sistem autentikasi menerapkan **Role-Based Access Control (RBAC)** berjenjang sesuai dengan standar Kemenkes ILP (Integrasi Layanan Primer).
+
+| Nama Pengguna | Username | Peran Sistem (`role`) | Jabatan Resmi | Otoritas Akses Utama (RBAC) |
+| :--- | :--- | :---: | :--- | :--- |
+| **Administrator Utama** | `admin` | `admin` | Administrator Sistem | Akses penuh sistem, pendaftaran warga, artikel edukasi, & pengaturan posko |
+| **Dr. Hendra Kusuma** | `ketua` | `ketua` | Ketua Posyandu | Pengawasan menyeluruh, evaluasi kunjungan rumah, & pengesahan laporan |
+| **Bdn. Ratna Juwita, S.Tr.Keb** | `bidan_desa` | `bidan` | Bidan Desa Pembina | Validasi ANC bumil, evaluasi KKA, kurva Fenton prematur, & rujukan |
+| **Siti Nurhaliza, A.Md.Gz** | `nutrisionis` | `bidan` | Petugas Gizi Puskesmas | Evaluasi status gizi antropometri balita & program stunting |
+| **Ibu Kader Rahmawati** | `kader` | `kader` | Kader Aktif (RW 01) | Registrasi pendaftaran warga, antropometri fisik, KKA, TTD, & Home Visit |
+| **Ibu Kader Anggrek** | `kader1` | `kader` | Kader Posyandu Anggrek | Pelayanan lapangan posko utama RW 01 |
+
+#### Matriks Aksesibilitas Fungsi (BRD V2.0 Section 2.2):
+- **Dashboard**: Semua peran (`admin`, `ketua`, `bidan`, `kader`)
+- **Pendaftaran Sasaran**: Khusus `admin` dan `kader`
+- **Daftar Anggota & Rekam Medis**: Semua peran
+- **Pencatatan Fisik & KKA**: `admin`, `bidan`, dan `kader`
+- **Kunjungan Rumah (Home Visit)**: Input oleh `kader`, supervisi & evaluasi oleh `ketua` & `bidan`
+- **Laporan Kesehatan & Stunting**: Semua peran (validasi oleh `bidan`, pengesahan oleh `ketua`)
+- **Konfigurasi Posko**: `admin` dan `ketua`
 
 ### B. Akun Kader Posko Lapangan (Tabel: kader)
 
@@ -380,12 +398,13 @@ Menu navigasi bilah sisi (*sidebar*) telah disederhanakan dan berfokus penuh pad
 | Kategori Sidebar | Modul Web | URL Endpoint | Otoritas | Fitur & Fungsionalitas Utama |
 | :--- | :--- | :--- | :--- | :--- |
 | **Menu Utama** | **Dashboard Statistik** | `/admin/dashboard` | Admin / Kader | Ringkasan kartu real-time (balita, bumil, lansia, remaja), grafik kehadiran bulanan, tabel interaktif rincian kehadiran per kelompok usia, dan pendaftar terbaru |
-| **Layanan Kesehatan** | **Pendaftaran Warga** | `/admin/pendaftaran` | Admin / Kader | Input registrasi warga baru dengan validasi 16 digit NIK & proteksi duplikasi data |
-| **Layanan Kesehatan** | **Pemilihan Warga (Daftar Anggota)** | `/admin/daftar-anggota` | Admin / Petugas | Pemilihan warga interaktif, filter kategori (*Semua, Balita, Ibu Hamil, Dewasa & Remaja, Lansia*), pencarian instan nama/NIK, dan tautan langsung pencatatan |
+| **Layanan Kesehatan** | **Pendaftaran Warga** | `/admin/pendaftaran` | Admin / Kader | Input registrasi warga baru dengan validasi 16 digit NIK, proteksi duplikasi, serta field status kelahiran prematur & usia gestasi kurva Fenton |
+| **Layanan Kesehatan** | **Pemilihan Warga (Daftar Anggota)** | `/admin/daftar-anggota` | Admin / Petugas | Pemilihan warga interaktif, filter kategori (*Semua, Balita, Ibu Hamil, Dewasa & Remaja, Lansia*), pencarian instan nama/NIK, dan navigasi pemeriksaan |
 | **Layanan Kesehatan** | **Pencatatan Fisik** | `/admin/pemeriksaan` | Bidan / Kader | Pencatatan antropometri (BB, TB, LiLA, LP, tensi darah) terhubung langsung ke NIK sasaran |
-| **Layanan Kesehatan** | **Laporan Kesehatan** | `/admin/laporan-kesehatan`| Bidan / Ketua | Rekapitulasi capaian pelayanan bulanan, pemantauan risiko stunting, dan riwayat cetak rekap medis (PDF) |
-| **Layanan Kesehatan** | **Artikel Edukasi** | `/admin/manajemen-artikel`| Admin / Kader | Publikasi materi penyuluhan stunting, gizi seimbang, MPASI, imunisasi, dan jadwal posyandu |
-| **Layanan Kesehatan** | **Profil Warga** | `/admin/profil/{nik}` | Admin / Petugas | Rekam KMS digital, kartu identitas warga, grafik tumbuh kembang, dan riwayat pemeriksaan |
+| **Layanan ILP** | **Kunjungan Rumah (Home Visit)** | `/admin/kunjungan-rumah` | Kader / Bidan | Form digital checklist kunjungan rumah standar ILP (Bumil KEK, Balita Masalah Gizi, Remaja Anemia, Lansia PTM), deteksi tanda bahaya, dan integrasi Chatbot WA ASIK |
+| **Layanan Kesehatan** | **Laporan Kesehatan & ASIK** | `/admin/laporan-kesehatan`| Bidan / Ketua | Rekapitulasi capaian pelayanan bulanan, pemantauan risiko stunting, riwayat cetak rekap medis (PDF), serta generator format Chatbot WA ASIK |
+| **Layanan Kesehatan** | **Artikel Edukasi Gizi** | `/admin/manajemen-artikel`| Admin / Kader | Publikasi materi Isi Piringku Kemenkes, PHBS, CTPS, pencegahan anemia, MPASI, imunisasi, dan jadwal posyandu |
+| **Layanan Kesehatan** | **Profil Warga & KKA Digital** | `/admin/profil/{nik}` | Admin / Petugas | Rekam KMS digital, kartu identitas, kurva pertumbuhan (WHO / Fenton), evaluasi 7 Aspek KKA (dengan alert rujukan jika 2 bulan beruntun di bawah garis merah), dan Kartu Kontrol TTD |
 | **Keamanan & Posko** | **Pengaturan Akun & Posko** | `/admin/pengaturan-akun` | Kader / Petugas | Manajemen profil, ubah kata sandi dengan indikator kekuatan sandi, autentikasi dua faktor (2FA/TFA OTP & kode pemulihan), dan data posko |
 | **Sistem** | **Simulator Kode Status** | `/status` | Publik / Dev | Showcase interaktif pengujian seluruh kode respons HTTP (2xx, 4xx, 5xx) |
 

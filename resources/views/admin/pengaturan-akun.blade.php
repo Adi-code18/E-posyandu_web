@@ -229,18 +229,14 @@
                         </div>
 
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="openModal('tfaRecoveryModal')">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="openModal('tfaRecoveryModal')" style="border-radius: 9999px; padding: 6px 16px;">
                                 <i class="fa-solid fa-ticket"></i>
                                 <span>Lihat Kode Cadangan</span>
                             </button>
-                            <form action="{{ route('admin.pengaturan-akun.tfa') }}" method="POST" style="margin: 0;" onsubmit="return confirm('Apakah Anda yakin ingin menonaktifkan Autentikasi Dua Faktor (2FA)?');">
-                                @csrf
-                                <input type="hidden" name="action" value="disable">
-                                <button type="submit" class="btn btn-outline-danger btn-sm" style="color: var(--danger); border: 1px solid #fecaca; background: #fff5f5;">
-                                    <i class="fa-solid fa-shield-slash"></i>
-                                    <span>Nonaktifkan 2FA</span>
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="openModal('disableTfaModal')" style="color: var(--danger); border: 1px solid #fecaca; background: #fff5f5; border-radius: 9999px; padding: 6px 16px;">
+                                <i class="fa-solid fa-shield-slash"></i>
+                                <span>Nonaktifkan 2FA</span>
+                            </button>
                         </div>
                     @else
                         <p style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.25rem;">
@@ -521,8 +517,8 @@
             </div>
 
             <div class="modal-footer" style="padding-top: 1rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('tfaSetupModal')">Batal</button>
-                <button type="submit" class="btn btn-primary" id="btnVerifyTfa">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('tfaSetupModal')" style="border-radius: 9999px; padding: 8px 18px;">Batal</button>
+                <button type="submit" class="btn btn-primary" id="btnVerifyTfa" style="background: #2d6a4f; border-radius: 9999px; padding: 8px 20px;">
                     <i class="fa-solid fa-check"></i>
                     <span>Verifikasi & Aktifkan</span>
                 </button>
@@ -567,21 +563,49 @@
         </div>
 
         <div style="display: flex; gap: 10px; margin-bottom: 1.25rem;">
-            <button type="button" class="btn btn-secondary btn-sm" style="flex: 1;" onclick="copyAllBackupCodes()">
+            <button type="button" class="btn btn-secondary btn-sm" style="flex: 1; border-radius: 9999px; padding: 7px 14px;" onclick="copyAllBackupCodes()">
                 <i class="fa-regular fa-copy"></i>
                 <span>Salin Semua Kode</span>
             </button>
-            <button type="button" class="btn btn-secondary btn-sm" style="flex: 1;" onclick="downloadBackupCodes()">
+            <button type="button" class="btn btn-secondary btn-sm" style="flex: 1; border-radius: 9999px; padding: 7px 14px;" onclick="downloadBackupCodes()">
                 <i class="fa-solid fa-download"></i>
                 <span>Unduh Berkas (.txt)</span>
             </button>
         </div>
 
         <div class="modal-footer" style="padding-top: 1rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
-            <button type="button" class="btn btn-primary btn-sm" onclick="closeModal('tfaRecoveryModal')">
+            <button type="button" class="btn btn-primary btn-sm" onclick="closeModal('tfaRecoveryModal')" style="background: #2d6a4f; border-radius: 9999px; padding: 8px 22px;">
                 <span>Saya Sudah Menyimpan</span>
             </button>
         </div>
+    </div>
+</div>
+
+{{-- =========================================================================
+     MODAL 3: KONFIRMASI NONAKTIFKAN 2FA
+     ========================================================================= --}}
+<div id="disableTfaModal" class="modal-overlay">
+    <div class="modal-box modal-sm" style="max-width: 440px; text-align: center;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: #fee2e2; color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 1rem;">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h3 class="serif" style="font-size: 1.25rem; margin-bottom: 8px; color: var(--text-main);">Nonaktifkan 2FA?</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5;">
+            Tingkat proteksi akun kader Anda akan menurun. Anda hanya akan memerlukan kata sandi biasa untuk login berikutnya.
+        </p>
+        <form action="{{ route('admin.pengaturan-akun.tfa') }}" method="POST" style="margin: 0;">
+            @csrf
+            <input type="hidden" name="action" value="disable">
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('disableTfaModal')" style="border-radius: 9999px; padding: 8px 18px;">
+                    Batalkan
+                </button>
+                <button type="submit" class="btn btn-danger btn-sm" style="border-radius: 9999px; padding: 8px 18px;">
+                    <i class="fa-solid fa-shield-slash"></i>
+                    <span>Ya, Nonaktifkan</span>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 @endsection

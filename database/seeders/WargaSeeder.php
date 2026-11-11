@@ -58,11 +58,13 @@ class WargaSeeder extends Seeder
             [
                 'NIK' => '3201022209220003',
                 'nama_lengkap' => 'Kenzo Alfarizi',
-                'tanggal_lahir' => '2022-09-22',
+                'tanggal_lahir' => '2024-07-11', // Umur kronologis 4 bulan
                 'nama_ayah' => 'Rizky Ramadhan',
                 'jenis_kelamin' => 'Laki-laki',
                 'nama_ibu' => 'Fitriani',
                 'status' => 'Balita',
+                'is_prematur' => true,
+                'usia_kehamilan_minggu' => 34, // Lahir 34 minggu (defisit 6 minggu = 1.5 bln, Usia Koreksi = 2.5 bln)
                 'id_kader' => $idKader,
                 'id_user' => $idUser,
             ],

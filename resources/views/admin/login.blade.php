@@ -15,6 +15,9 @@
     <meta name="theme-color" content="#2d6a4f">
     <title>Login Petugas — e-Posyandu</title>
     
+    <!-- Favicon Logo Resmi -->
+    <link rel="icon" type="image/png" href="{{ asset('assets/e-posyandu.png') }}">
+    
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -275,9 +278,9 @@
 </head>
 <body>
     <div class="login-wrapper">
-        <!-- Logo Badge -->
-        <div class="logo-badge" title="e-Posyandu Protected">
-            <i class="fa-solid fa-shield-halved"></i>
+        <!-- Logo Badge Resmi -->
+        <div class="logo-badge" title="e-Posyandu" style="width: 64px; height: 64px; background: transparent; box-shadow: none; border-radius: 0; margin-bottom: 1rem;">
+            <img src="{{ asset('assets/e-posyandu.png') }}" alt="Logo e-Posyandu" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
 
         <!-- Headline & Subtitle -->
@@ -285,16 +288,40 @@
             Selamat Datang di e-Posyandu
         </h1>
         <p class="login-subtitle">
-            Masuk untuk mengelola data kesehatan warga.
+            Masuk untuk mengelola data kesehatan warga berbasis peran.
         </p>
 
+        {{-- Flash Pesan --}}
+        @if(session('error'))
+            <div style="background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px; text-align: left;">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
+
+        @if(session('success'))
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px; text-align: left;">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div style="background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px; text-align: left;">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>{{ $errors->first() }}</span>
+            </div>
+        @endif
+
         <!-- Form Login -->
-        <form action="{{ route('admin.dashboard') }}" method="GET" class="login-form">
+        <form action="{{ route('login.post') }}" method="POST" class="login-form">
+            @csrf
+
             <div class="form-group">
-                <label class="form-label" for="usernameInput">Username atau NIK</label>
+                <label class="form-label" for="usernameInput">Username atau NIK Petugas</label>
                 <div class="input-group-custom">
                     <i class="fa-regular fa-user leading-icon"></i>
-                    <input type="text" id="usernameInput" class="input-control" placeholder="Contoh: 3201234567890001" required autofocus>
+                    <input type="text" name="username" id="usernameInput" class="input-control" placeholder="Contoh: kader / bidan_desa / admin / ketua" value="{{ old('username', 'kader') }}" required autofocus>
                 </div>
             </div>
 
@@ -302,7 +329,7 @@
                 <label class="form-label" for="passwordInput">Kata Sandi</label>
                 <div class="input-group-custom">
                     <i class="fa-solid fa-lock leading-icon"></i>
-                    <input type="password" id="passwordInput" class="input-control" placeholder="••••••••" style="padding-right: 42px;" required>
+                    <input type="password" name="password" id="passwordInput" class="input-control" placeholder="••••••••" value="password" style="padding-right: 42px;" required>
                     <button type="button" id="togglePasswordBtn" class="toggle-pwd-btn" aria-label="Lihat kata sandi">
                         <i class="fa-regular fa-eye" id="toggleEyeIcon"></i>
                     </button>
@@ -311,7 +338,7 @@
 
             <div class="form-options-row">
                 <label class="checkbox-label">
-                    <input type="checkbox" name="remember" checked>
+                    <input type="checkbox" name="remember" value="1" checked>
                     <span>Ingat Saya</span>
                 </label>
                 <a href="#" class="forgot-link">Lupa kata sandi?</a>
@@ -322,6 +349,32 @@
                 <i class="fa-solid fa-arrow-right"></i>
             </button>
         </form>
+
+        <!-- Pilihan Cepat Peran Pengguna (Role Quick-Fill) -->
+        <div style="margin-top: 1.5rem; padding: 12px; background: #faf8f5; border: 1px solid #ede8de; border-radius: 14px; text-align: left;">
+            <div style="font-size: 0.725rem; font-weight: 700; color: #71717a; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-id-badge text-primary"></i>
+                Pilih Akun Demo Sesuai Peran:
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                <button type="button" onclick="setLoginRole('kader', 'password')" style="background: #ffffff; border: 1px solid #e5e7eb; padding: 6px 10px; border-radius: 8px; cursor: pointer; text-align: left; font-size: 0.775rem; transition: all 0.15s ease;">
+                    <div style="font-weight: 600; color: #2d6a4f;">Kader Lapangan</div>
+                    <div style="font-size: 0.675rem; color: #9ca3af;">kader</div>
+                </button>
+                <button type="button" onclick="setLoginRole('bidan_desa', 'password')" style="background: #ffffff; border: 1px solid #e5e7eb; padding: 6px 10px; border-radius: 8px; cursor: pointer; text-align: left; font-size: 0.775rem; transition: all 0.15s ease;">
+                    <div style="font-weight: 600; color: #0284c7;">Bidan Desa</div>
+                    <div style="font-size: 0.675rem; color: #9ca3af;">bidan_desa</div>
+                </button>
+                <button type="button" onclick="setLoginRole('ketua', 'password')" style="background: #ffffff; border: 1px solid #e5e7eb; padding: 6px 10px; border-radius: 8px; cursor: pointer; text-align: left; font-size: 0.775rem; transition: all 0.15s ease;">
+                    <div style="font-weight: 600; color: #d97706;">Ketua Posyandu</div>
+                    <div style="font-size: 0.675rem; color: #9ca3af;">ketua</div>
+                </button>
+                <button type="button" onclick="setLoginRole('admin', 'password')" style="background: #ffffff; border: 1px solid #e5e7eb; padding: 6px 10px; border-radius: 8px; cursor: pointer; text-align: left; font-size: 0.775rem; transition: all 0.15s ease;">
+                    <div style="font-weight: 600; color: #4b5563;">Administrator</div>
+                    <div style="font-size: 0.675rem; color: #9ca3af;">admin</div>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Footer Bar -->
@@ -347,6 +400,11 @@
                 eyeIcon.classList.toggle('fa-eye', !isPassword);
                 eyeIcon.classList.toggle('fa-eye-slash', isPassword);
             });
+        }
+
+        function setLoginRole(username, password) {
+            document.getElementById('usernameInput').value = username;
+            document.getElementById('passwordInput').value = password;
         }
     </script>
 </body>

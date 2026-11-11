@@ -20,6 +20,9 @@ class DatabaseSeeder extends Seeder
             LaporanPenjualanSeeder::class,
             TabelKasMasukSeeder::class,
             PemeriksaanSeeder::class,
+            KartuKembangAnakSeeder::class,
+            KontrolTtdSeeder::class,
+            KunjunganRumahSeeder::class,
             LaporanKesehatanSeeder::class,
             InformasiUmumSeeder::class,
         ]);
