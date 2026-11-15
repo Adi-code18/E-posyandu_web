@@ -86,12 +86,8 @@
         @endforeach
     </div>
 
-    <!-- Tombol Aksi Tambah & Integrasi ASIK WA -->
-    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <button type="button" class="btn btn-secondary" onclick="openModal('asikModal')" style="border-radius: 9999px; font-size: 0.825rem; border-color: #25d366; color: #128c7e;">
-            <i class="fa-brands fa-whatsapp" style="font-size: 0.95rem; margin-right: 4px; color: #25d366;"></i>
-            <span>Format Chatbot WA ASIK</span>
-        </button>
+    <!-- Tombol Aksi Tambah Kunjungan Rumah -->
+    <div>
         <button type="button" class="btn btn-primary" onclick="openModal('kunjunganModal')" style="border-radius: 9999px; font-size: 0.825rem; background: #2d6a4f;">
             <i class="fa-solid fa-plus" style="margin-right: 4px;"></i>
             <span>Catat Kunjungan Rumah</span>
@@ -299,51 +295,7 @@
     </div>
 </div>
 
-<!-- Modal 2: Generator Format Chatbot WhatsApp ASIK Kemenkes -->
-<div class="modal-overlay" id="asikModal">
-    <div class="modal-box modal-md" style="max-width: 540px;">
-        <div class="modal-header">
-            <div>
-                <h3 class="serif" style="font-size: 1.25rem; margin: 0; color: #1f2937; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-brands fa-whatsapp text-success" style="color: #25d366;"></i>
-                    Format Chatbot WhatsApp ASIK
-                </h3>
-                <div style="font-size: 0.8rem; color: #6b7280; margin-top: 3px;">
-                    Format pelaporan ke layanan resmi Chatbot WhatsApp ASIK Kemenkes RI.
-                </div>
-            </div>
-            <button type="button" class="modal-close-btn" onclick="closeModal('asikModal')" aria-label="Tutup">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-
-        <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 1rem; line-height: 1.5;">
-            Salin format pesan di bawah ini untuk dikirimkan langsung ke nomor WhatsApp Chatbot ASIK Kemenkes:
-        </p>
-
-        <div style="position: relative; margin-bottom: 1.25rem;">
-            <textarea id="asikTextTemplate" rows="8" readonly class="form-control" style="font-family: monospace; font-size: 0.825rem; background: #faf8f5; border: 1px solid #e5e7eb; border-radius: 12px; line-height: 1.5; padding: 12px;">#LAPORAN_ILP#
-KODE_POSYANDU: POSKO_ANGGREK_01
-TANGGAL: {{ now()->format('Y-m-d') }}
-TOTAL_KUNJUNGAN: {{ $stats['total'] }}
-BUMIL_KEK: {{ $stats['bumil'] }}
-BALITA_STUNTING: {{ $stats['balita'] }}
-TANDA_BAHAYA: {{ $stats['tanda_bahaya'] }}
-RUJUKAN_FASKES: {{ $stats['rujukan'] }}
-STATUS: TERVERIFIKASI_KADER</textarea>
-        </div>
-
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeModal('asikModal')" style="border-radius: 9999px; padding: 8px 18px;">Tutup</button>
-            <button type="button" class="btn btn-primary" onclick="copyAsikText()" style="background: #128c7e; border-color: #128c7e; border-radius: 9999px; padding: 8px 20px;">
-                <i class="fa-solid fa-copy" style="margin-right: 4px;"></i>
-                <span id="copyBtnText">Salin Teks ke Clipboard</span>
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal 3: Rincian Detail Kunjungan Rumah (Modern Popup Menggantikan alert) -->
+<!-- Modal 2: Rincian Detail Kunjungan Rumah (Modern Popup Menggantikan alert) -->
 <div class="modal-overlay" id="detailKunjunganModal">
     <div class="modal-box modal-md" style="max-width: 540px;">
         <div class="modal-header">
@@ -413,17 +365,6 @@ STATUS: TERVERIFIKASI_KADER</textarea>
 </div>
 
 <script>
-function copyAsikText() {
-    const copyText = document.getElementById("asikTextTemplate");
-    copyText.select();
-    copyText.setSelectionRange(0, 99999);
-    navigator.clipboard.writeText(copyText.value).then(function() {
-        const btn = document.getElementById("copyBtnText");
-        btn.innerText = "Tersalin!";
-        setTimeout(() => { btn.innerText = "Salin Teks ke Clipboard"; }, 2000);
-    });
-}
-
 function showDetailKunjungan(data) {
     document.getElementById("detailTanggalKader").innerText = data.tanggal + " • Petugas: " + (data.kader ? data.kader.nama_kader : 'Kader Posko');
     document.getElementById("detailNamaWarga").innerText = data.warga ? data.warga.nama_lengkap : 'Warga';
